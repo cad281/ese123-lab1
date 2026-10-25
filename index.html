@@ -358,6 +358,12 @@ window.FORMULAS=[{"name": "Ohm’s law", "eq": "V = I · R", "when": "You know t
 // ---- shared additions for the lab series ----
 const E24=[1.0,1.1,1.2,1.3,1.5,1.6,1.8,2.0,2.2,2.4,2.7,3.0,3.3,3.6,3.9,4.3,4.7,5.1,5.6,6.2,6.8,7.5,8.2,9.1];
 function e24Near(v){const e=Math.floor(Math.log10(v));let best=1e99,bv=v;for(const d of [e-1,e,e+1])for(const m of E24){const c=m*Math.pow(10,d);if(Math.abs(Math.log(c/v))<Math.abs(Math.log(best/v))){best=c;bv=c}}return +bv.toPrecision(3)}
+function logAxes(ctx,w,h,pad,fx,fy,xt,yt,xl,yl){
+  ctx.fillStyle=P.panel;ctx.fillRect(0,0,w,h);ctx.strokeStyle=P.line;ctx.lineWidth=1;ctx.font=`10px ${P['f-mono']}`;ctx.fillStyle=P.muted;
+  ctx.textAlign='center';for(const [v,l] of xt){const x=fx(v);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,h-pad.b);ctx.stroke();ctx.fillText(l,x,h-pad.b+14)}
+  ctx.textAlign='right';for(const [v,l] of yt){const y=fy(v);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(l,pad.l-5,y+3)}
+  ctx.textAlign='center';ctx.fillText(xl,(pad.l+w-pad.r)/2,h-3);
+  ctx.save();ctx.translate(11,(pad.t+h-pad.b)/2);ctx.rotate(-Math.PI/2);ctx.fillText(yl,0,0);ctx.restore();}
 // General x-y plot. o: {x:[min,max], y:[min,max], logx, xt:[[v,label]], yt, xl, yl, series:[{fn|pts, color, dots, width, dash}], marks:[{x,y,color,label,ring}], hl:[x0,x1]}
 function plot(cv,o){const {ctx,w,h}=fit(cv);if(!w)return null;const pad={l:o.padl||54,r:14,t:12,b:32};
   const lx=v=>o.logx?Math.log10(v):v;const X0=lx(o.x[0]),X1=lx(o.x[1]);
