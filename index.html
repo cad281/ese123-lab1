@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Lab 1 DC Power &amp; Ohm&#x27;s Law</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column, each lab section = explanation + a live instrument panel (scope screens stay dark like the real DSO-X) */
+:root{
+  --bg:#eceff3; --panel:#ffffff; --ink:#17212b; --muted:#56636f; --line:#d2d8df;
+  --accent:#1d5bb8; --accent-soft:#dfe8f7; --warn:#b4480f; --warn-soft:#fbe9df; --ok:#17803d;
+  --ch1:#a87b00; --ch2:#11804a;
+  --scr:#0a1017; --grid:#26323f; --grid2:#3a4858; --c1s:#f3d417; --c2s:#3ddc6f; --curs:#e8eef5; --hl:rgba(120,180,255,.20); --part:rgba(255,140,60,.22);
+  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1319; --panel:#151c24; --ink:#e4e9ee; --muted:#97a3af; --line:#2a343f;
+  --accent:#74a9ff; --accent-soft:#1b2a40; --warn:#ff9a62; --warn-soft:#3a2216; --ok:#4fd27f;
+  --ch1:#f2cf4a; --ch2:#4fdc86; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1319; --panel:#151c24; --ink:#e4e9ee; --muted:#97a3af; --line:#2a343f;
+  --accent:#74a9ff; --accent-soft:#1b2a40; --warn:#ff9a62; --warn-soft:#3a2216; --ok:#4fd27f;
+  --ch1:#f2cf4a; --ch2:#4fdc86; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:920px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);line-height:1.12;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.2rem,6vw,3.4rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,4vw,2.1rem);font-weight:700}
+h3{font-size:1.25rem;font-weight:600}
+p{margin:0;max-width:68ch}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header.hero{padding-block:40px 24px;display:grid;gap:14px}
+.hero .lede{font-size:1.1rem;color:var(--muted)}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+nav.toc a{font-family:var(--f-mono);font-size:.8rem;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--panel);padding:6px 10px;border-radius:6px}
+nav.toc a:hover,nav.toc a:focus-visible{border-color:var(--accent);color:var(--accent)}
+section.lab{padding-block:40px 8px;border-top:1px solid var(--line);display:grid;gap:18px}
+.steps-tag{font-family:var(--f-mono);font-size:.78rem;color:var(--accent)}
+.stack{display:grid;gap:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px;min-width:0}
+.two{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+canvas.scope{width:100%;aspect-ratio:10/8;display:block;border-radius:6px;background:var(--scr)}
+canvas.plot{width:100%;aspect-ratio:16/9;display:block}
+canvas.wide{width:100%;aspect-ratio:3/1;display:block;border-radius:6px;background:var(--scr)}
+.bezel{background:#1c232c;border-radius:10px;padding:10px;display:grid;gap:8px}
+.bezel .strip{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--f-mono);font-size:.78rem;color:#c9d3dd}
+.strip .c1{color:#f3d417}.strip .c2{color:#3ddc6f}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.ctrls label{display:grid;gap:4px;font-size:.8rem;color:var(--muted);font-family:var(--f-mono)}
+select,input[type=number]{font:inherit;font-family:var(--f-mono);font-size:.9rem;padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+button{font:inherit;font-size:.88rem;font-family:var(--f-mono);padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button.key{background:#2b3440;color:#e7edf3;border-color:#3d4855}
+button.key.auto{background:#3b6fd1;border-color:#3b6fd1}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.readout{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-family:var(--f-mono);font-size:.88rem;font-variant-numeric:tabular-nums}
+.readout dt{color:var(--muted)}.readout dd{margin:0}
+.readout .hot{color:var(--accent);font-weight:600}
+.msg{font-size:.9rem;padding:10px 12px;border-radius:8px;background:var(--accent-soft)}
+.msg.warn{background:var(--warn-soft);color:var(--ink);border-left:3px solid var(--warn)}
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.why .panel h3{font-size:1.08rem}
+.why .panel p{font-size:.95rem}
+.formula{font-family:var(--f-mono);font-size:1.15rem;padding:10px 14px;background:var(--bg);border-radius:8px;border:1px dashed var(--line);overflow-x:auto}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+tr.cur td{background:var(--accent-soft)}
+.freqs{display:flex;flex-wrap:wrap;gap:6px}
+.freqs button{padding:5px 9px;font-size:.8rem}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.sw{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+svg text{font-family:var(--f-mono)}
+.schem .wire{stroke:var(--ink);stroke-width:2;fill:none}
+.schem .lbl{fill:var(--ink);font-size:11px}
+.schem .sub{fill:var(--muted);font-size:10px}
+.schem .p1{fill:var(--ch1);font-size:11px;font-weight:600}
+.schem .p2{fill:var(--ch2);font-size:11px;font-weight:600}
+.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.part{display:grid;gap:4px;justify-items:start;text-align:left;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);font-family:var(--f-body);font-size:.85rem}
+.part.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.part b{font-family:var(--f-mono);font-size:.8rem}
+.part svg{width:100%;height:40px}
+.detail{display:grid;gap:8px}
+ol.flow{margin:0;padding-left:1.3em;display:grid;gap:6px;max-width:68ch}
+.small{font-size:.86rem;color:var(--muted)}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.75rem;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+.labnav{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.labnav a{color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:3px 10px;background:var(--panel)}
+.labnav a[aria-current]{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.fcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:8px;align-content:start;min-width:0}
+.fcard h3{font-size:1.05rem}
+.fcard .eq{font-family:var(--f-mono);font-size:1.12rem;padding:8px 10px;background:var(--bg);border-radius:6px;overflow-x:auto;white-space:pre}
+.fcard .when{font-size:.92rem}
+.fcard .vars{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:.85rem;margin:0}
+.fcard .vars dt{font-family:var(--f-mono);color:var(--accent)}
+.fcard .vars dd{margin:0;color:var(--muted)}
+.fcard .ex{font-size:.86rem;border-top:1px dashed var(--line);padding-top:8px}
+.fcard .ex b{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-right:6px}
+.stepper{display:flex;flex-wrap:wrap;gap:6px}
+.stepper button{padding:5px 10px;font-size:.8rem}
+.qlist{margin:0;padding-left:1.3em;display:grid;gap:8px;max-width:72ch}
+.qlist li span{color:var(--muted);font-size:.9rem;display:block}
+.psu{background:#1c232c;border-radius:10px;padding:12px;display:grid;gap:8px;color:#d9e2ea;font-family:var(--f-mono)}
+.psu .lcd{background:#0d1a24;border-radius:6px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:baseline}
+.psu .big{font-size:1.7rem;color:#5ee08a;font-variant-numeric:tabular-nums}
+.psu .st{font-size:.8rem;padding:2px 8px;border-radius:4px;background:#26323f}
+.psu .st.cc{background:#c2410c;color:#fff}.psu .st.cv{background:#17803d;color:#fff}.psu .st.off{background:#3a4552;color:#aab}
+</style>
+<div class="wrap">
+<!--title: Lab 1 DC Power & Ohm's Law-->
+<header class="hero">
+  <div class="eyebrow">ESE 123 · Laboratory 1 · TA walkthrough</div>
+  <h1>DC Power Supply &amp; Ohm’s Law</h1>
+  <p class="lede">Your first lab: work out how much power a resistor can safely take, learn the two modes of the Keysight E36312A power supply (constant voltage and constant current), measure a resistor’s I–V line, and find out why an LED does not obey Ohm’s law. Every panel below is a live simulation, so you can predict each reading before you take it.</p>
+  <nav class="labnav" aria-label="All labs"><span>ESE 123 labs:</span><a href="https://cad281.github.io/ese123-lab1/" aria-current="page">Lab 1</a> <a href="https://cad281.github.io/ese123-lab2/">Lab 2</a> <a href="https://cad281.github.io/ese123-lab3/">Lab 3</a> <a href="https://cad281.github.io/ese123-lab4/">Lab 4</a> <a href="https://cad281.github.io/ese123-lab5/">Lab 5</a> <a href="https://cad281.github.io/ese123-lab6/">Lab 6</a></nav>
+  <nav class="toc" aria-label="Sections">
+    <a href="#limits">1 · Safe power limits</a>
+    <a href="#psu">2 · CV vs CC</a>
+    <a href="#sweep">3 · Resistor sweep</a>
+    <a href="#led">4 · The LED</a>
+    <a href="#formulas">5 · Formula sheet</a>
+    <a href="#report">6 · Report guide</a>
+  </nav>
+</header>
+
+<section class="lab" id="limits">
+  <div class="steps-tag">Pre-lab 1</div>
+  <h2>1 · How much power can the resistor take?</h2>
+  <p>A resistor turns electrical energy into heat. Our resistors are rated for ¼ W, but we <b>derate</b> them by a factor of 2 and never go above ⅛ W. That keeps them cool enough to touch and keeps their resistance stable. Before touching the power supply you calculate the largest current and voltage that stay under that limit.</p>
+  <div class="two">
+    <div class="panel">
+      <canvas id="cvHeat" style="width:100%;aspect-ratio:2/1;display:block" aria-label="Resistor that glows hotter as power increases"></canvas>
+      <label class="small mono" for="hV">Voltage across the resistor: <b id="hVv"></b></label>
+      <input type="range" id="hV" min="0" max="0.6" step="0.005" value="0.25">
+      <div class="msg" id="hMsg"></div>
+    </div>
+    <div class="panel">
+      <div class="ctrls">
+        <label for="lR">Resistance R (Ω)<input type="number" id="lR" value="1" step="any" min="0"></label>
+        <label for="lP">Rated power (W)<input type="number" id="lP" value="0.25" step="any" min="0"></label>
+        <label for="lD">Derating factor<input type="number" id="lD" value="2" step="any" min="1"></label>
+      </div>
+      <dl class="readout" id="lOut"></dl>
+      <p class="small">Try the pre-lab example: 20 Ω, 5 W, derate by 2 gives P<sub>max</sub> = 2.5 W and V<sub>max</sub> = √(2.5 × 20) = 7.071 V.</p>
+    </div>
+  </div>
+</section>
+
+<section class="lab" id="psu">
+  <div class="steps-tag">Handout pages 2–5, steps 8–15</div>
+  <h2>2 · The power supply has two modes: CV and CC</h2>
+  <p>Each channel of the E36312A has <b>two settings</b>: a voltage setpoint and a current setpoint (a limit). It obeys whichever one it hits first. While the circuit draws less than the current limit, the supply holds the voltage steady: <b>CV</b>, constant voltage. If holding that voltage would need more current than the limit, it holds the current at the limit instead and lets the voltage drop: <b>CC</b>, constant current. The display always tells you which mode you are in.</p>
+  <div class="two">
+    <div class="stack">
+      <div class="psu" aria-label="Simulated power supply display, channel 2">
+        <div class="lcd">
+          <span style="color:#3ddc6f">CH2</span><span class="big" id="pV">0.000 V</span><span class="st off" id="pSt">OFF</span>
+          <span></span><span class="big" id="pI">0.000 A</span><span></span>
+          <span class="small" style="color:#8fa0ae">Set</span><span id="pSet" style="font-size:.85rem;color:#aebccb"></span><span></span>
+        </div>
+        <div class="ctrls">
+          <button type="button" class="key" id="pOn">Output ON</button>
+          <label for="pVs" style="color:#aebccb">Voltage setpoint<input type="range" id="pVs" min="0" max="0.6" step="0.01" value="0.2"></label>
+          <label for="pIs" style="color:#aebccb">Current limit (A)<input type="number" id="pIs" value="0.354" step="0.001" min="0"></label>
+        </div>
+      </div>
+      <p class="small">Load: the 1 Ω resistor (plus about 0.07 Ω of clip and lead resistance).</p>
+    </div>
+    <div class="panel">
+      <canvas class="plot" id="cvVI" aria-label="Current versus voltage plane showing the CV line, CC line, load line and operating point"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>resistor: I = V / R</span><span><i class="sw" style="background:var(--ok)"></i>CV setpoint</span><span><i class="sw" style="background:var(--warn)"></i>CC limit</span></div>
+      <div class="msg" id="pMsg"></div>
+    </div>
+  </div>
+  <div class="why">
+    <div class="panel"><h3>Why set the current limit first</h3><p>The current limit is your safety net. Set it to I<sub>max</sub> from the pre-lab (0.354 A for 1 Ω at ⅛ W). Then no matter how far you turn the voltage knob, the resistor can never get more than ⅛ W.</p></div>
+    <div class="panel"><h3>Why the voltage stops rising</h3><p>Once I = V/R reaches the limit, the supply switches to CC. Turning the voltage setpoint higher changes nothing: the measured voltage stays at I<sub>limit</sub> × R. That is how you know the sweep is over (step 16).</p></div>
+    <div class="panel"><h3>Keypad vs knob</h3><p>Keypad: highlight the field, type <span class="mono">.05</span>, then press Enter; nothing changes until Enter. Knob: 1 mV per click when turned slowly, bigger jumps when turned fast (it is velocity-sensitive).</p></div>
+    <div class="panel"><h3>The supply’s sign convention</h3><p>The supply reports current flowing <i>out</i> of its + terminal (active sign convention). The resistor uses current flowing <i>into</i> its + terminal (passive). Connected together they describe the same current, so I<sub>supply</sub> = I<sub>resistor</sub> and V<sub>supply</sub> = V<sub>resistor</sub>.</p></div>
+  </div>
+</section>
+
+<section class="lab" id="sweep">
+  <div class="steps-tag">Handout steps 5–23</div>
+  <h2>3 · Resistor sweep: from data points to a resistance</h2>
+  <p>You raise the voltage in 0.05 V steps, record V, I and the mode at each step, then let Google Sheets fit a straight line. The slope of the I-vs-V line is the <b>conductance</b> G (in siemens, S), and the resistance is its reciprocal: R = 1/G. Watch the data come in.</p>
+  <div class="two">
+    <div class="panel">
+      <canvas class="plot" id="cvSweep" aria-label="Scatter plot of current versus voltage with trendline"></canvas>
+      <div class="ctrls">
+        <button type="button" id="swPlay">Replay sweep</button>
+        <label class="small" style="display:flex;gap:6px;align-items:center;font-family:var(--f-body)"><input type="checkbox" id="swLead" checked> include ~0.07 Ω of clips and leads</label>
+      </div>
+      <div class="msg" id="swFit"></div>
+    </div>
+    <div class="panel">
+      <div class="tblwrap" style="max-height:340px;overflow-y:auto"><table id="swTbl"></table></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Making the chart in Google Sheets</h3>
+    <ol class="flow">
+      <li>Column A = voltage (V), column B = current (A). Put units in the headings.</li>
+      <li>Select the numbers only (not the headings) → <b>Insert → Chart</b>.</li>
+      <li>Chart editor → Chart type → <b>Scatter chart</b>. Current goes on the vertical axis.</li>
+      <li><b>Customize → Series → Trendline</b> ✓, then Label → <b>Use Equation</b>.</li>
+      <li>The equation looks like <span class="mono">y = mx + b</span>. m is the conductance in A/V = S. Take 1/m to get the resistance.</li>
+    </ol>
+  </div>
+  <div class="why">
+    <div class="panel"><h3>Why your resistance comes out a little high</h3><p>The supply measures voltage at its own terminals, so the alligator clips, test leads and contact points are measured as part of “the resistor”. For a 1 Ω part, 0.05–0.1 Ω of wiring is already 5–10%. Untick the box above to see the pure resistor.</p></div>
+    <div class="panel"><h3>Why b is not exactly zero</h3><p>The supply’s readings have small offsets and limited resolution (the last digit flickers). A tiny b like 0.001 is normal. A large b means a reading was copied wrong.</p></div>
+  </div>
+</section>
+
+<section class="lab" id="led">
+  <div class="steps-tag">Procedure: LEDs, steps 1–10</div>
+  <h2>4 · The blue LED: a device that does not obey Ohm’s law</h2>
+  <p>An LED is <b>polar</b>: current only flows easily one way, from the long lead (anode, +) to the short lead (cathode, −). Below about 2.5 V almost no current flows; above it, a tiny voltage increase makes the current shoot up. So there is no single “resistance” for an LED. Set the voltage limit to 3.3 V first, then sweep in CC mode and in CV mode.</p>
+  <div class="two">
+    <div class="panel">
+      <canvas class="plot" id="cvLed" aria-label="LED current versus voltage curve with measured points and a poor linear trendline"></canvas>
+      <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>LED curve</span><span><i class="sw" style="background:var(--warn)"></i>CC points</span><span><i class="sw" style="background:var(--ok)"></i>CV points</span><span><i class="sw" style="background:var(--muted)"></i>linear trendline (poor fit)</span></div>
+    </div>
+    <div class="panel">
+      <div class="tabs"><button type="button" data-lm="cc" class="on">CC sweep 5–20 mA</button><button type="button" data-lm="cv">CV sweep 0–2.5 V</button></div>
+      <div class="stepper" id="ledSteps"></div>
+      <canvas id="cvGlow" style="width:100%;height:120px;display:block" aria-label="LED glowing with brightness set by current"></canvas>
+      <dl class="readout" id="ledOut"></dl>
+    </div>
+  </div>
+  <div class="why">
+    <div class="panel"><h3>Why CC mode is the safe way to drive an LED</h3><p>Near its turn-on voltage, a few tens of millivolts change the LED current a lot. In CV mode a small knob turn can push far too much current. In CC mode you choose the current directly, and the 3.3 V limit stops anything silly.</p></div>
+    <div class="panel"><h3>Why the CV sweep shows almost zero current</h3><p>From 0 to 2.5 V the LED is still below its turn-on point, so the current is microamps or less, often below what the supply can display. That is the “off” part of the curve.</p></div>
+    <div class="panel"><h3>Differential resistance Δr</h3><p>Δr = ΔV/ΔI between two neighbouring points is the slope of the curve <i>at that spot</i>. At high current it is around 15 Ω; at low voltage ΔI is almost zero, so Δr is enormous. Same device, wildly different “resistance”: that is what non-ohmic means.</p></div>
+    <div class="panel"><h3>Why the straight trendline fails</h3><p>Sheets will happily fit a line, but the points bend sharply, so the line misses most of them and its slope means nothing physical. That is your answer to “does this device follow Ohm’s law?”</p></div>
+  </div>
+</section>
+
+<section class="lab" id="formulas">
+  <div class="steps-tag">Keep this open during the lab</div>
+  <h2>5 · Formula sheet: what, when, and an example</h2>
+  <div class="fgrid" id="formulasHost"></div>
+</section>
+
+<section class="lab" id="report">
+  <div class="steps-tag">Questions at the end of the handout</div>
+  <h2>6 · Report guide: how to answer each question</h2>
+  <ol class="qlist">
+    <li>Measured conductance: the slope m of your resistor trendline, in siemens (S = A/V).<span>Don’t forget the unit.</span></li>
+    <li>Resistance: R = 1/m, in ohms.</li>
+    <li>Percent error vs the nominal 1 Ω: (measured − nominal)/nominal × 100%.<span>Keep the sign: + means measured is higher.</span></li>
+    <li>Is 0.95 ≤ R ≤ 1.05 Ω? List error sources: lead and clip resistance, contact resistance, supply resolution, resistor heating.</li>
+    <li>LED “resistance” from the whole-data trendline (1/m), and whether the LED follows Ohm’s law.<span>Look at how badly the line fits the points.</span></li>
+    <li>Δr at high current: use the two highest-voltage points, Δr = ΔV/ΔI.</li>
+    <li>Δr at low current: use the two lowest-voltage points.<span>If ΔI reads 0, say Δr is too large to measure with this supply.</span></li>
+  </ol>
+  <p class="small">Attach both plots as screenshots, put everything in one PDF and upload it to Brightspace. Sign out of the lab computer when you leave.</p>
+</section>
+
+</div>
+<script>
+(()=>{
+
+const TAU=Math.PI*2;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $=s=>document.querySelector(s);
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const ease=x=>{x=clamp(x);return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2};
+const lerp=(a,b,k)=>a+(b-a)*k;
+
+let P={};
+function refresh(){const cs=getComputedStyle(document.documentElement);
+  ['--scr','--grid','--grid2','--c1s','--c2s','--curs','--hl','--part','--ink','--muted','--line','--accent','--warn','--ch1','--ch2','--panel','--bg','--f-mono'].forEach(k=>P[k.slice(2)]=cs.getPropertyValue(k).trim());}
+refresh();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',refresh);
+new MutationObserver(refresh).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+function fmt(v,u,d=3){if(!isFinite(v))return '—';if(v===0)return '0 '+u;const a=Math.abs(v);
+  const pre=[[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p']];
+  for(const [m,p] of pre){if(a>=m*0.9995){return Number((v/m).toPrecision(d))+' '+p+u}}
+  return Number((v/1e-12).toPrecision(d))+' p'+u;}
+const steps125=(lo,hi)=>{const r=[];for(let e=-7;e<=1;e++)for(const m of [1,2,5]){const v=m*Math.pow(10,e);if(v>=lo*0.999&&v<=hi*1.001)r.push(+v.toPrecision(3))}return r};
+const TDIV=steps125(1e-5,1), VDIV=steps125(2e-3,5);
+function fillSelect(sel,list,unit,val){sel.innerHTML=list.map(v=>`<option value="${v}">${fmt(v,unit)}/div</option>`).join('');sel.value=String(val)}
+
+function fit(cv){const dpr=window.devicePixelRatio||1;const w=cv.clientWidth,h=cv.clientHeight;
+  const W=Math.round(w*dpr),H=Math.round(h*dpr);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,w,h};}
+
+// Generic scope: 10 x 8 divisions, screen time from -pos*tdiv to (10-pos)*tdiv, trigger at t=0
+function drawScope(cv,o){
+  const {ctx,w,h}=fit(cv); if(!w)return;
+  const tdiv=o.tdiv,pos=o.pos??5,tL=-pos*tdiv,span=10*tdiv,dx=w/10,dy=h/8;
+  const X=t=>(t-tL)/span*w, T=x=>tL+x/w*span;
+  ctx.fillStyle=P.scr;ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle=P.grid;ctx.lineWidth=1;ctx.setLineDash([1,3]);ctx.beginPath();
+  for(let i=1;i<10;i++){ctx.moveTo(i*dx+.5,0);ctx.lineTo(i*dx+.5,h)}
+  for(let j=1;j<8;j++){ctx.moveTo(0,j*dy+.5);ctx.lineTo(w,j*dy+.5)}
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle=P.grid2;ctx.beginPath();ctx.moveTo(0,h/2+.5);ctx.lineTo(w,h/2+.5);ctx.moveTo(w/2+.5,0);ctx.lineTo(w/2+.5,h);
+  for(let i=0;i<50;i++){const x=i*dx/5+.5;ctx.moveTo(x,h/2-3);ctx.lineTo(x,h/2+3)}
+  for(let j=0;j<40;j++){const y=j*dy/5+.5;ctx.moveTo(w/2-3,y);ctx.lineTo(w/2+3,y)}
+  ctx.stroke();
+  // trigger position marker
+  ctx.fillStyle=P.accent;ctx.beginPath();const tx=X(0);ctx.moveTo(tx-5,0);ctx.lineTo(tx+5,0);ctx.lineTo(tx,7);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
+  const g={ctx,w,h,dx,dy,X,T,tdiv,Y:(v,vdiv,off=0)=>h/2-(v/vdiv)*dy-off*dy};
+  o.under&&o.under(g);
+  const prog=o.progress??1;
+  for(const tr of o.traces){
+    ctx.strokeStyle=tr.color;ctx.lineWidth=tr.width||2;ctx.globalAlpha=tr.alpha??1;
+    ctx.shadowColor=tr.color;ctx.shadowBlur=reduce?0:6;ctx.beginPath();
+    const N=Math.ceil(w*1.5),end=Math.floor(N*prog);
+    for(let i=0;i<=end;i++){const x=i/N*w;const y=g.Y(tr.fn(T(x)),tr.vdiv,tr.off||0);
+      const yc=Math.max(-20,Math.min(h+20,y));i?ctx.lineTo(x,yc):ctx.moveTo(x,yc)}
+    ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+    if(prog<1&&!reduce){const x=end/N*w;ctx.fillStyle=tr.color;ctx.beginPath();ctx.arc(x,g.Y(tr.fn(T(x)),tr.vdiv,tr.off||0),3,0,TAU);ctx.fill()}
+  }
+  o.over&&o.over(g);
+  ctx.restore();
+}
+function hline(g,y,dash,color,label,right){const c=g.ctx;c.strokeStyle=color;c.lineWidth=1.3;c.setLineDash(dash);c.beginPath();c.moveTo(0,y);c.lineTo(g.w,y);c.stroke();c.setLineDash([]);
+  if(label){c.font=`11px ${P['f-mono']}`;c.fillStyle=color;c.textAlign=right?'right':'left';c.fillText(label,right?g.w-6:6,y-5)}}
+function vline(g,x,dash,color,label){const c=g.ctx;c.strokeStyle=color;c.lineWidth=1.3;c.setLineDash(dash);c.beginPath();c.moveTo(x,0);c.lineTo(x,g.h);c.stroke();c.setLineDash([]);
+  if(label){c.font=`11px ${P['f-mono']}`;c.fillStyle=color;c.textAlign='left';c.fillText(label,x+4,g.h-8)}}
+function tag(g,x,y,text,color){const c=g.ctx;c.font=`600 12px ${P['f-mono']}`;const m=c.measureText(text).width;
+  x=Math.max(4,Math.min(g.w-m-12,x));c.fillStyle='rgba(10,16,23,.85)';c.fillRect(x,y-14,m+8,19);c.fillStyle=color;c.textAlign='left';c.fillText(text,x+4,y)}
+
+// visibility-driven animation loop
+const vis=new Map();const io=new IntersectionObserver(es=>es.forEach(e=>vis.set(e.target,e.isIntersecting)),{rootMargin:'100px'});
+const anims=[];function anim(el,fn){io.observe(el);anims.push([el,fn]);vis.set(el,true)}
+let t0=performance.now();
+function loop(now){const t=(now-t0)/1000;for(const [el,fn] of anims){if(vis.get(el))fn(t)}requestAnimationFrame(loop)}
+
+
+window.FORMULAS=[{"name": "Ohm’s law", "eq": "V = I · R", "when": "You know two of voltage, current and resistance for a resistor and need the third. Only works for ohmic devices (resistors), not LEDs.", "vars": [["V", "voltage across the part (V)"], ["I", "current through it (A)"], ["R", "resistance (Ω)"]], "ex": "0.30 V across 1 Ω → I = 0.30 / 1 = 0.30 A."}, {"name": "Power", "eq": "P = I · V = I² · R = V² / R", "when": "Checking how hot a part gets. Pick the form that uses what you know: I and V, or I and R, or V and R.", "vars": [["P", "power turned into heat (W)"]], "ex": "0.354 A through 1 Ω → P = 0.354² × 1 = 0.125 W."}, {"name": "Derated power limit", "eq": "P<sub>max</sub> = P<sub>rated</sub> / derating factor", "when": "Before choosing setpoints. We derate by 2 for cooler, safer, more reliable parts.", "vars": [["P<sub>rated</sub>", "manufacturer rating (¼ W for our resistors)"]], "ex": "¼ W / 2 = ⅛ W = 0.125 W."}, {"name": "Maximum safe current", "eq": "I<sub>max</sub> = √(P<sub>max</sub> / R)", "when": "Setting the current limit on the supply so the resistor can never exceed P<sub>max</sub>.", "ex": "√(0.125 / 1) = 0.354 A for the 1 Ω resistor."}, {"name": "Maximum safe voltage", "eq": "V<sub>max</sub> = √(P<sub>max</sub> · R)", "when": "Knowing the highest voltage you can apply in CV mode.", "ex": "20 Ω, 5 W derated by 2: √(2.5 × 20) = 7.071 V."}, {"name": "Conductance", "eq": "G = 1 / R   (units: siemens, S = A/V)", "when": "Reading your I-vs-V trendline. The slope m is G, so R = 1/m.", "ex": "Trendline y = 0.926x + 0.0002 → G = 0.926 S → R = 1.080 Ω."}, {"name": "Supply mode (CV or CC)", "eq": "if V<sub>set</sub> / R ≤ I<sub>limit</sub> → CV, V = V<sub>set</sub>\nelse → CC, I = I<sub>limit</sub>, V = I<sub>limit</sub> · R", "when": "Predicting what the E36312A display will show, and recognising when your sweep has hit the current limit.", "ex": "V<sub>set</sub> = 0.40 V, R = 1.07 Ω needs 0.374 A > 0.354 A → CC at 0.379 V."}, {"name": "Differential resistance", "eq": "Δr = ΔV / ΔI", "when": "Describing a non-ohmic device (LED) at one spot on its curve, using two neighbouring data points.", "ex": "LED: 2.914 V @ 15 mA and 2.990 V @ 20 mA → Δr = 0.076 / 0.005 = 15 Ω."}, {"name": "Percent error", "eq": "error = (measured − nominal) / nominal × 100%", "when": "Comparing your result with the part’s labelled value or a calculation. Keep the sign.", "ex": "Measured 1.08 Ω vs nominal 1 Ω → +8%."}, {"name": "Tolerance range", "eq": "R<sub>nominal</sub> × (1 ± tolerance)", "when": "Deciding if a part is within spec. Gold band = ±5%.", "ex": "1 Ω ±5% → 0.95 Ω to 1.05 Ω."}];
+// ---- shared additions for the lab series ----
+const E24=[1.0,1.1,1.2,1.3,1.5,1.6,1.8,2.0,2.2,2.4,2.7,3.0,3.3,3.6,3.9,4.3,4.7,5.1,5.6,6.2,6.8,7.5,8.2,9.1];
+function e24Near(v){const e=Math.floor(Math.log10(v));let best=1e99,bv=v;for(const d of [e-1,e,e+1])for(const m of E24){const c=m*Math.pow(10,d);if(Math.abs(Math.log(c/v))<Math.abs(Math.log(best/v))){best=c;bv=c}}return +bv.toPrecision(3)}
+// General x-y plot. o: {x:[min,max], y:[min,max], logx, xt:[[v,label]], yt, xl, yl, series:[{fn|pts, color, dots, width, dash}], marks:[{x,y,color,label,ring}], hl:[x0,x1]}
+function plot(cv,o){const {ctx,w,h}=fit(cv);if(!w)return null;const pad={l:o.padl||54,r:14,t:12,b:32};
+  const lx=v=>o.logx?Math.log10(v):v;const X0=lx(o.x[0]),X1=lx(o.x[1]);
+  const fx=v=>pad.l+(lx(v)-X0)/(X1-X0)*(w-pad.l-pad.r),fy=v=>pad.t+(1-(v-o.y[0])/(o.y[1]-o.y[0]))*(h-pad.t-pad.b);
+  logAxes(ctx,w,h,pad,fx,fy,o.xt,o.yt,o.xl,o.yl);
+  ctx.save();ctx.beginPath();ctx.rect(pad.l,pad.t,w-pad.l-pad.r,h-pad.t-pad.b);ctx.clip();
+  if(o.hl){ctx.fillStyle=P.hl;ctx.fillRect(fx(o.hl[0]),pad.t,fx(o.hl[1])-fx(o.hl[0]),h-pad.t-pad.b)}
+  for(const s of o.series){ctx.strokeStyle=s.color;ctx.fillStyle=s.color;ctx.lineWidth=s.width||2.2;ctx.setLineDash(s.dash||[]);
+    let pts=s.pts;if(s.fn){pts=[];for(let i=0;i<=300;i++){const xv=o.logx?Math.pow(10,X0+(X1-X0)*i/300):o.x[0]+(o.x[1]-o.x[0])*i/300;pts.push([xv,s.fn(xv)])}}
+    if(s.line!==false){ctx.beginPath();pts.forEach(([a,b],i)=>{const X=fx(a),Y=fy(b);i?ctx.lineTo(X,Y):ctx.moveTo(X,Y)});ctx.stroke()}
+    ctx.setLineDash([]);if(s.dots)for(const [a,b] of pts){ctx.beginPath();ctx.arc(fx(a),fy(b),s.r||3.5,0,TAU);ctx.fill()}}
+  ctx.restore();
+  for(const m of o.marks||[]){const X=fx(m.x),Y=fy(m.y);ctx.strokeStyle=m.color||P.accent;ctx.fillStyle=m.color||P.accent;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X,Y,m.ring?7:4,0,TAU);m.ring?ctx.stroke():ctx.fill();
+    if(m.label){ctx.font=`600 11px ${P['f-mono']}`;const right=X>w*0.65;ctx.textAlign=right?'right':'left';ctx.fillText(m.label,X+(right?-10:10),Math.max(pad.t+12,Y-8))}}
+  return {fx,fy,pad,w,h,ctx};}
+// Formula cards from window.FORMULAS
+function renderFormulas(el,list){el.innerHTML=list.map(f=>`<div class="fcard"><h3>${f.name}</h3><div class="eq">${f.eq}</div><p class="when"><b>Use it when:</b> ${f.when}</p>${f.vars?`<dl class="vars">${f.vars.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`:''}${f.ex?`<p class="ex"><b>Example</b>${f.ex}</p>`:''}</div>`).join('')}
+const fEl=document.getElementById('formulasHost');if(fEl&&window.FORMULAS)renderFormulas(fEl,window.FORMULAS);
+
+
+/* 1. Power limits */
+const L={R:1,P:0.25,D:2};
+function lText(){L.R=+$('#lR').value;L.P=+$('#lP').value;L.D=+$('#lD').value||1;const Pm=L.P/L.D;
+  $('#lOut').innerHTML=`<dt>P<sub>max</sub></dt><dd>${fmt(L.P,'W')} / ${L.D} = <span class="hot">${fmt(Pm,'W')}</span></dd>
+  <dt>I<sub>max</sub></dt><dd>√(P<sub>max</sub>/R) = <span class="hot">${fmt(Math.sqrt(Pm/L.R),'A')}</span></dd>
+  <dt>V<sub>max</sub></dt><dd>√(P<sub>max</sub>·R) = <span class="hot">${fmt(Math.sqrt(Pm*L.R),'V')}</span></dd>`;hText()}
+function hText(){const V=+$('#hV').value,Pm=L.P/L.D,Pw=V*V/L.R;$('#hVv').textContent=`${V.toFixed(3)} V → P = V²/R = ${fmt(Pw,'W')}`;
+  const m=$('#hMsg');if(Pw>L.P){m.className='msg warn';m.textContent='Above the ¼ W rating: the resistor will scorch. Never do this.'}
+  else if(Pw>Pm){m.className='msg warn';m.textContent=`Above the derated ${fmt(Pm,'W')} limit. It still works, but it is hot enough to burn a finger.`}
+  else{m.className='msg';m.textContent=`Within the derated limit (${(Pw/Pm*100).toFixed(0)}% of ${fmt(Pm,'W')}).`}}
+['#lR','#lP','#lD'].forEach(s=>$(s).oninput=lText);$('#hV').oninput=hText;lText();
+anim($('#cvHeat'),t=>{const cv=$('#cvHeat');const {ctx,w,h}=fit(cv);if(!w)return;const V=+$('#hV').value,Pm=L.P/L.D,k=clamp(V*V/L.R/L.P);
+  ctx.fillStyle=P.panel;ctx.fillRect(0,0,w,h);const cx=w*0.42,cy=h*0.5,bw=w*0.36,bh=h*0.26;
+  ctx.strokeStyle='#9aa3ad';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(w*0.04,cy);ctx.lineTo(w*0.8,cy);ctx.stroke();
+  if(!reduce&&k>0.05){for(let i=0;i<6;i++){const ph=((t*0.4+i/6)%1);ctx.strokeStyle=`rgba(255,${Math.round(160-100*k)},60,${(1-ph)*k*0.7})`;ctx.lineWidth=2;ctx.beginPath();const x=cx-bw/2+bw*(i+0.5)/6;ctx.moveTo(x,cy-bh/2-4-ph*h*0.3);ctx.quadraticCurveTo(x+8,cy-bh/2-14-ph*h*0.3,x,cy-bh/2-24-ph*h*0.3);ctx.stroke()}}
+  const r=Math.round(lerp(214,255,k)),g=Math.round(lerp(196,90,k)),b=Math.round(lerp(160,30,k));ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.shadowColor=`rgba(255,100,30,${k})`;ctx.shadowBlur=30*k;
+  ctx.beginPath();ctx.roundRect(cx-bw/2,cy-bh/2,bw,bh,bh/2);ctx.fill();ctx.shadowBlur=0;
+const bands=['#7a4a1e','#111','#c9a227','#c9a227'];bands.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(cx-bw/2+bw*(0.18+i*0.17),cy-bh/2,bw*0.07,bh)});
+  // thermometer
+  const tx=w*0.9,ty=h*0.12,th=h*0.72;ctx.fillStyle=P.bg;ctx.fillRect(tx-7,ty,14,th);const fill=clamp(V*V/L.R/(L.P*1.2));ctx.fillStyle=V*V/L.R>Pm?P.warn:P.ok;ctx.fillRect(tx-7,ty+th*(1-fill),14,th*fill);
+  const ly=ty+th*(1-Pm/(L.P*1.2));ctx.strokeStyle=P.ink;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(tx-16,ly);ctx.lineTo(tx+16,ly);ctx.stroke();ctx.setLineDash([]);
+  ctx.font=`11px ${P['f-mono']}`;ctx.fillStyle=P.muted;ctx.textAlign='right';ctx.fillText('⅛ W limit',tx-18,ly+4);ctx.fillText('power',tx+8,ty+th+14)});
+
+/* 2. Power supply CV/CC */
+const RLOAD=1.07;const S={on:false,Vs:0.2,Is:0.354};
+function psuState(){if(!S.on)return {mode:'OFF',V:0,I:0};const Icv=S.Vs/RLOAD;return Icv<=S.Is?{mode:'CV',V:S.Vs,I:Icv}:{mode:'CC',V:S.Is*RLOAD,I:S.Is}}
+function pText(){S.Vs=+$('#pVs').value;S.Is=Math.max(0,+$('#pIs').value);const st=psuState();
+  $('#pV').textContent=st.V.toFixed(3)+' V';$('#pI').textContent=st.I.toFixed(3)+' A';const e=$('#pSt');e.textContent=st.mode;e.className='st '+st.mode.toLowerCase();
+  $('#pSet').textContent=`${S.Vs.toFixed(3)} V   ${S.Is.toFixed(3)} A`;$('#pOn').textContent=S.on?'Output OFF':'Output ON';
+  const m=$('#pMsg');m.className='msg';
+  m.textContent=!S.on?'Output is disabled: both readings are about zero no matter what the setpoints are. Press Output ON.':
+    st.mode==='CV'?`CV: the supply holds ${S.Vs.toFixed(3)} V. The resistor decides the current, ${st.I.toFixed(3)} A, which is below the ${S.Is.toFixed(3)} A limit.`:
+    `CC: holding ${S.Vs.toFixed(3)} V would need ${(S.Vs/RLOAD).toFixed(3)} A, more than the limit. The supply pins the current at ${S.Is.toFixed(3)} A and the voltage drops to I × R = ${st.V.toFixed(3)} V.`;
+  if(st.mode==='CC'){m.className='msg warn'}drawVI()}
+function drawVI(){const st=psuState();plot($('#cvVI'),{x:[0,0.6],y:[0,0.6],xt:[[0,'0'],[0.2,'0.2'],[0.4,'0.4'],[0.6,'0.6 V']],yt:[[0,'0'],[0.2,'0.2'],[0.4,'0.4'],[0.6,'0.6 A']],xl:'voltage (V)',yl:'current (A)',
+  series:[{fn:v=>v/RLOAD,color:P.accent},{pts:[[S.Vs,0],[S.Vs,0.6]],color:P.ok,dash:[6,4],width:1.6},{pts:[[0,S.Is],[0.6,S.Is]],color:P.warn,dash:[6,4],width:1.6}],
+  marks:S.on?[{x:st.V,y:st.I,ring:true,label:`${st.mode} ${st.V.toFixed(3)} V, ${st.I.toFixed(3)} A`}]:[]})}
+$('#pOn').onclick=()=>{S.on=!S.on;pText()};$('#pVs').oninput=pText;$('#pIs').oninput=pText;pText();
+
+/* 3. Resistor sweep */
+const SW={start:0};
+function sweepData(){const R=$('#swLead').checked?1.08:1.01,Imax=0.354;const rows=[];let jit=[0,.0004,-.0003,.0002,-.0004,.0003,-.0002,.0001,0];
+  for(let i=0;i<=9;i++){const Vs=+(i*0.05).toFixed(2);const Icv=Vs/R;if(Icv<=Imax)rows.push({Vs,V:Vs,I:Math.max(0,Icv+jit[i%9]),m:'CV'});else{rows.push({Vs,V:Imax*R,I:Imax,m:'CC'});break}}return {rows,R}}
+function fitLine(pts){const n=pts.length;let sx=0,sy=0,sxx=0,sxy=0;for(const [x,y] of pts){sx+=x;sy+=y;sxx+=x*x;sxy+=x*y}const m=(n*sxy-sx*sy)/(n*sxx-sx*sx);return {m,b:(sy-m*sx)/n}}
+anim($('#cvSweep'),t=>{const {rows}=sweepData();const k=reduce?99:(t-SW.start);const n=Math.min(rows.length,Math.floor(k/0.7)+1);const shown=rows.slice(0,n);
+  const pts=shown.map(r=>[r.V,r.I]);const done=n===rows.length;const f=done?fitLine(pts):null;
+  plot($('#cvSweep'),{x:[0,0.45],y:[0,0.42],xt:[[0,'0'],[0.1,'0.1'],[0.2,'0.2'],[0.3,'0.3'],[0.4,'0.4 V']],yt:[[0,'0'],[0.1,'0.1'],[0.2,'0.2'],[0.3,'0.3'],[0.4,'0.4 A']],xl:'voltage (V)',yl:'current (A)',
+    series:[...(f?[{fn:x=>f.m*x+f.b,color:P.muted,dash:[5,4],width:1.5}]:[]),{pts,color:P.accent,dots:true,line:false}],
+    marks:shown.length?[{x:shown[n-1].V,y:shown[n-1].I,ring:true,color:shown[n-1].m==='CC'?P.warn:P.accent}]:[]});
+  const key=n+'|'+$('#swLead').checked;if($('#swTbl').dataset.k!==key){$('#swTbl').dataset.k=key;
+    $('#swTbl').innerHTML='<thead><tr><th>Setpoint</th><th>V (V)</th><th>I (A)</th><th>Mode</th></tr></thead><tbody>'+shown.map(r=>`<tr${r.m==='CC'?' class="cur"':''}><td class="num">${r.Vs.toFixed(2)}</td><td class="num">${r.V.toFixed(3)}</td><td class="num">${r.I.toFixed(4)}</td><td>${r.m}</td></tr>`).join('')+'</tbody>';
+    $('#swFit').innerHTML=f?`Trendline: <span class="mono">y = ${f.m.toFixed(3)}x ${f.b<0?'−':'+'} ${Math.abs(f.b).toFixed(4)}</span> → conductance G = ${f.m.toFixed(3)} S → R = 1/G = <b>${(1/f.m).toFixed(3)} Ω</b> (${((1/f.m-1)*100).toFixed(1)}% vs 1 Ω). The last point is in CC: the sweep is over.`:'Collecting data… every 0.05 V step adds one point.'}});
+$('#swPlay').onclick=()=>{SW.start=(performance.now()-t0)/1000};$('#swLead').onchange=()=>{SW.start=(performance.now()-t0)/1000-99};
+
+/* 4. LED */
+const NVT=0.0569,RS=12,IS=0.02*Math.exp(-2.75/NVT);
+const ledV=I=>I<=0?0:NVT*Math.log(I/IS)+I*RS;
+function ledI(V){if(V<=0)return 0;let lo=0,hi=0.2;for(let i=0;i<60;i++){const m=(lo+hi)/2;ledV(m)>V?hi=m:lo=m}return lo}
+const CCI=[0.005,0.01,0.015,0.02],CVV=[0,0.5,1,1.5,2,2.5];
+const CCP=CCI.map(I=>[ledV(I),I]),CVP=CVV.map(V=>[V,ledI(V)]);const ALL=[...CVP,...CCP];const LF=fitLine(ALL);
+const LED={mode:'cc',i:3};
+function ledSteps(){const list=LED.mode==='cc'?CCI.map(I=>fmt(I,'A')):CVV.map(V=>V.toFixed(1)+' V');
+  $('#ledSteps').innerHTML=list.map((l,i)=>`<button type="button" data-ls="${i}" class="${i===LED.i?'on':''}">${l}</button>`).join('');
+  document.querySelectorAll('[data-ls]').forEach(b=>b.onclick=()=>{LED.i=+b.dataset.ls;ledSteps();ledText()})}
+function cur(){return LED.mode==='cc'?CCP[LED.i]:CVP[LED.i]}
+function ledText(){const [V,I]=cur();const hiR=(CCP[3][0]-CCP[2][0])/(CCP[3][1]-CCP[2][1]);
+  $('#ledOut').innerHTML=`<dt>supply mode</dt><dd>${LED.mode==='cc'?'CC (you set the current)':'CV (you set the voltage)'}</dd><dt>V</dt><dd class="hot">${V.toFixed(3)} V</dd><dt>I</dt><dd class="hot">${I<1e-6?I.toExponential(1)+' A (shows 0.000)':fmt(I,'A')}</dd>
+  <dt>“R” = V/I</dt><dd>${I>1e-9?fmt(V/I,'Ω'):'∞'}</dd><dt>Δr, top two points</dt><dd>${hiR.toFixed(1)} Ω</dd><dt>whole-data trendline</dt><dd>1/m = ${fmt(1/LF.m,'Ω')}</dd>`;drawLed()}
+function drawLed(){const [V,I]=cur();plot($('#cvLed'),{x:[0,3.2],y:[0,0.024],xt:[[0,'0'],[1,'1'],[2,'2'],[3,'3 V']],yt:[[0,'0'],[0.01,'10'],[0.02,'20 mA']],xl:'voltage (V)',yl:'current',
+  series:[{fn:ledI,color:P.accent},{fn:v=>LF.m*v+LF.b,color:P.muted,dash:[5,4],width:1.4},{pts:CCP,color:P.warn,dots:true,line:false},{pts:CVP,color:P.ok,dots:true,line:false}],marks:[{x:V,y:I,ring:true,label:`${V.toFixed(2)} V, ${fmt(I,'A',2)}`}]})}
+document.querySelectorAll('[data-lm]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-lm]').forEach(x=>x.classList.toggle('on',x===b));LED.mode=b.dataset.lm;LED.i=LED.mode==='cc'?3:5;ledSteps();ledText()});
+ledSteps();ledText();
+anim($('#cvGlow'),t=>{const cv=$('#cvGlow');const {ctx,w,h}=fit(cv);if(!w)return;const [,I]=cur();const k=clamp(I/0.02);ctx.fillStyle=P.panel;ctx.fillRect(0,0,w,h);
+  const cx=w/2,cy=h*0.42;if(k>0.001){const g=ctx.createRadialGradient(cx,cy,4,cx,cy,70);g.addColorStop(0,`rgba(90,150,255,${0.9*k})`);g.addColorStop(1,'rgba(90,150,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)}
+  ctx.fillStyle=`rgba(${Math.round(80+100*k)},${Math.round(120+100*k)},255,${0.35+0.65*k})`;ctx.beginPath();ctx.arc(cx,cy-6,16,Math.PI,0);ctx.lineTo(cx+16,cy+14);ctx.lineTo(cx-16,cy+14);ctx.fill();
+  ctx.strokeStyle='#9aa3ad';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx-7,cy+14);ctx.lineTo(cx-7,h-4);ctx.moveTo(cx+7,cy+14);ctx.lineTo(cx+7,h-16);ctx.stroke();
+  ctx.font=`11px ${P['f-mono']}`;ctx.fillStyle=P.muted;ctx.textAlign='right';ctx.fillText('long lead = anode (+) → red',cx-14,h-6);ctx.textAlign='left';ctx.fillText('short = cathode (−)',cx+14,h-18)});
+addEventListener('resize',()=>{drawVI();drawLed()});
+
+requestAnimationFrame(loop);
+})();
+</script>
+
+</html>
