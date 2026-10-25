@@ -181,6 +181,75 @@ Rnominal × (1 ± tolerance)
 **Example:** 1 Ω ±5% → 0.95 Ω to 1.05 Ω.
 
 
+## Practice questions
+
+Same concepts and formulas as the Brightspace quiz, with new numbers (not the real quiz questions). Try each one before opening the answer.
+
+**Q1.** A 47 Ω, ½ W resistor is derated by a factor of 2. What is the largest current you should allow?
+
+<details><summary>Show answer</summary>
+
+**72.9 mA**. Pmax = 0.5/2 = 0.25 W. Imax = √(Pmax/R) = √(0.25/47) = 0.0729 A.
+
+</details>
+
+**Q2.** Same 47 Ω resistor and derating. What is the largest voltage you should apply?
+
+<details><summary>Show answer</summary>
+
+**3.43 V**. Vmax = √(Pmax·R) = √(0.25 × 47) = √11.75 = 3.43 V.
+
+</details>
+
+**Q3.** A 220 Ω resistor has 3.3 V across it. Find the current and the power.
+
+<details><summary>Show answer</summary>
+
+**15.0 mA, 49.5 mW**. I = V/R = 3.3/220 = 0.015 A. P = V·I = 3.3 × 0.015 = 0.0495 W (or V²/R = 10.89/220).
+
+</details>
+
+**Q4.** What is the smallest resistor you could put across a 12 V supply and keep it at or below ⅛ W?
+
+<details><summary>Show answer</summary>
+
+**1152 Ω**. P = V²/R → R = V²/P = 144/0.125 = 1152 Ω. A smaller R would draw more power.
+
+</details>
+
+**Q5.** A supply is set to 5 V with a 20 mA current limit and drives a 100 Ω resistor. Which mode is it in, and what does the display show?
+
+<details><summary>Show answer</summary>
+
+**CC: 20 mA, 2.00 V**. Holding 5 V would need 5/100 = 50 mA > 20 mA, so it switches to CC. I = 20 mA, V = I·R = 0.020 × 100 = 2.00 V.
+
+</details>
+
+**Q6.** Your Sheets trendline for a resistor is y = 0.0213x + 0.0001 (y in A, x in V). What is the resistance, and the % error from a nominal 47 Ω?
+
+<details><summary>Show answer</summary>
+
+**46.9 Ω, −0.2%**. Slope = conductance G = 0.0213 S. R = 1/G = 46.95 Ω. Error = (46.95 − 47)/47 × 100% ≈ −0.1 to −0.2%.
+
+</details>
+
+**Q7.** An LED reads 2.85 V at 10 mA and 2.93 V at 15 mA. What is its differential resistance there?
+
+<details><summary>Show answer</summary>
+
+**16 Ω**. Δr = ΔV/ΔI = (2.93 − 2.85)/(0.015 − 0.010) = 0.08/0.005 = 16 Ω.
+
+</details>
+
+**Q8.** Is a 1 Ω, ±5% resistor that measures 1.07 Ω within tolerance?
+
+<details><summary>Show answer</summary>
+
+**No**. ±5% of 1 Ω is 0.95–1.05 Ω. 1.07 Ω is 7% high, most likely because lead and clip resistance were included.
+
+</details>
+
+
 ## Report guide
 
 1. Conductance = slope m of the resistor trendline, **in siemens**.

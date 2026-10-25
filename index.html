@@ -125,6 +125,13 @@ ol.flow{margin:0;padding-left:1.3em;display:grid;gap:6px;max-width:68ch}
 .psu .big{font-size:1.7rem;color:#5ee08a;font-variant-numeric:tabular-nums}
 .psu .st{font-size:.8rem;padding:2px 8px;border-radius:4px;background:#26323f}
 .psu .st.cc{background:#c2410c;color:#fff}.psu .st.cv{background:#17803d;color:#fff}.psu .st.off{background:#3a4552;color:#aab}
+.plist{display:grid;gap:10px;margin:0;padding:0;list-style:none;counter-reset:pq}
+.plist li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:grid;gap:8px;counter-increment:pq}
+.plist .q::before{content:"Q" counter(pq) ". ";font-family:var(--f-mono);color:var(--accent);font-weight:600}
+.plist details summary{cursor:pointer;font-family:var(--f-mono);font-size:.85rem;color:var(--accent)}
+.plist details[open] summary{margin-bottom:6px}
+.plist .ans{font-weight:700}
+.plist .work{font-size:.92rem;color:var(--muted)}
 </style>
 <div class="wrap">
 <!--title: Lab 1 DC Power & Ohm's Law-->
@@ -139,7 +146,8 @@ ol.flow{margin:0;padding-left:1.3em;display:grid;gap:6px;max-width:68ch}
     <a href="#sweep">3 · Resistor sweep</a>
     <a href="#led">4 · The LED</a>
     <a href="#formulas">5 · Formula sheet</a>
-    <a href="#report">6 · Report guide</a>
+    <a href="#practice">6 · Practice questions</a>
+    <a href="#report">7 · Report guide</a>
   </nav>
 </header>
 
@@ -263,9 +271,16 @@ ol.flow{margin:0;padding-left:1.3em;display:grid;gap:6px;max-width:68ch}
   <div class="fgrid" id="formulasHost"></div>
 </section>
 
+<section class="lab" id="practice">
+  <div class="steps-tag">Self-check · same concepts as the Brightspace quiz, new numbers</div>
+  <h2>6 · Practice questions</h2>
+  <p>Try each one before opening the answer. These are not the real quiz questions; they use the same formulas and ideas with different numbers.</p>
+  <ol class="plist" id="practiceHost"></ol>
+</section>
+
 <section class="lab" id="report">
   <div class="steps-tag">Questions at the end of the handout</div>
-  <h2>6 · Report guide: how to answer each question</h2>
+  <h2>7 · Report guide: how to answer each question</h2>
   <ol class="qlist">
     <li>Measured conductance: the slope m of your resistor trendline, in siemens (S = A/V).<span>Don’t forget the unit.</span></li>
     <li>Resistance: R = 1/m, in ohms.</li>
@@ -355,6 +370,7 @@ function loop(now){const t=(now-t0)/1000;for(const [el,fn] of anims){if(vis.get(
 
 
 window.FORMULAS=[{"name": "Ohm’s law", "eq": "V = I · R", "when": "You know two of voltage, current and resistance for a resistor and need the third. Only works for ohmic devices (resistors), not LEDs.", "vars": [["V", "voltage across the part (V)"], ["I", "current through it (A)"], ["R", "resistance (Ω)"]], "ex": "0.30 V across 1 Ω → I = 0.30 / 1 = 0.30 A."}, {"name": "Power", "eq": "P = I · V = I² · R = V² / R", "when": "Checking how hot a part gets. Pick the form that uses what you know: I and V, or I and R, or V and R.", "vars": [["P", "power turned into heat (W)"]], "ex": "0.354 A through 1 Ω → P = 0.354² × 1 = 0.125 W."}, {"name": "Derated power limit", "eq": "P<sub>max</sub> = P<sub>rated</sub> / derating factor", "when": "Before choosing setpoints. We derate by 2 for cooler, safer, more reliable parts.", "vars": [["P<sub>rated</sub>", "manufacturer rating (¼ W for our resistors)"]], "ex": "¼ W / 2 = ⅛ W = 0.125 W."}, {"name": "Maximum safe current", "eq": "I<sub>max</sub> = √(P<sub>max</sub> / R)", "when": "Setting the current limit on the supply so the resistor can never exceed P<sub>max</sub>.", "ex": "√(0.125 / 1) = 0.354 A for the 1 Ω resistor."}, {"name": "Maximum safe voltage", "eq": "V<sub>max</sub> = √(P<sub>max</sub> · R)", "when": "Knowing the highest voltage you can apply in CV mode.", "ex": "20 Ω, 5 W derated by 2: √(2.5 × 20) = 7.071 V."}, {"name": "Conductance", "eq": "G = 1 / R   (units: siemens, S = A/V)", "when": "Reading your I-vs-V trendline. The slope m is G, so R = 1/m.", "ex": "Trendline y = 0.926x + 0.0002 → G = 0.926 S → R = 1.080 Ω."}, {"name": "Supply mode (CV or CC)", "eq": "if V<sub>set</sub> / R ≤ I<sub>limit</sub> → CV, V = V<sub>set</sub>\nelse → CC, I = I<sub>limit</sub>, V = I<sub>limit</sub> · R", "when": "Predicting what the E36312A display will show, and recognising when your sweep has hit the current limit.", "ex": "V<sub>set</sub> = 0.40 V, R = 1.07 Ω needs 0.374 A > 0.354 A → CC at 0.379 V."}, {"name": "Differential resistance", "eq": "Δr = ΔV / ΔI", "when": "Describing a non-ohmic device (LED) at one spot on its curve, using two neighbouring data points.", "ex": "LED: 2.914 V @ 15 mA and 2.990 V @ 20 mA → Δr = 0.076 / 0.005 = 15 Ω."}, {"name": "Percent error", "eq": "error = (measured − nominal) / nominal × 100%", "when": "Comparing your result with the part’s labelled value or a calculation. Keep the sign.", "ex": "Measured 1.08 Ω vs nominal 1 Ω → +8%."}, {"name": "Tolerance range", "eq": "R<sub>nominal</sub> × (1 ± tolerance)", "when": "Deciding if a part is within spec. Gold band = ±5%.", "ex": "1 Ω ±5% → 0.95 Ω to 1.05 Ω."}];
+window.PRACTICE=[{"q": "A 47 Ω, ½ W resistor is derated by a factor of 2. What is the largest current you should allow?", "a": "72.9 mA", "work": "P<sub>max</sub> = 0.5/2 = 0.25 W. I<sub>max</sub> = √(P<sub>max</sub>/R) = √(0.25/47) = 0.0729 A."}, {"q": "Same 47 Ω resistor and derating. What is the largest voltage you should apply?", "a": "3.43 V", "work": "V<sub>max</sub> = √(P<sub>max</sub>·R) = √(0.25 × 47) = √11.75 = 3.43 V."}, {"q": "A 220 Ω resistor has 3.3 V across it. Find the current and the power.", "a": "15.0 mA, 49.5 mW", "work": "I = V/R = 3.3/220 = 0.015 A. P = V·I = 3.3 × 0.015 = 0.0495 W (or V²/R = 10.89/220)."}, {"q": "What is the smallest resistor you could put across a 12 V supply and keep it at or below ⅛ W?", "a": "1152 Ω", "work": "P = V²/R → R = V²/P = 144/0.125 = 1152 Ω. A smaller R would draw more power."}, {"q": "A supply is set to 5 V with a 20 mA current limit and drives a 100 Ω resistor. Which mode is it in, and what does the display show?", "a": "CC: 20 mA, 2.00 V", "work": "Holding 5 V would need 5/100 = 50 mA > 20 mA, so it switches to CC. I = 20 mA, V = I·R = 0.020 × 100 = 2.00 V."}, {"q": "Your Sheets trendline for a resistor is y = 0.0213x + 0.0001 (y in A, x in V). What is the resistance, and the % error from a nominal 47 Ω?", "a": "46.9 Ω, −0.2%", "work": "Slope = conductance G = 0.0213 S. R = 1/G = 46.95 Ω. Error = (46.95 − 47)/47 × 100% ≈ −0.1 to −0.2%."}, {"q": "An LED reads 2.85 V at 10 mA and 2.93 V at 15 mA. What is its differential resistance there?", "a": "16 Ω", "work": "Δr = ΔV/ΔI = (2.93 − 2.85)/(0.015 − 0.010) = 0.08/0.005 = 16 Ω."}, {"q": "Is a 1 Ω, ±5% resistor that measures 1.07 Ω within tolerance?", "a": "No", "work": "±5% of 1 Ω is 0.95–1.05 Ω. 1.07 Ω is 7% high, most likely because lead and clip resistance were included."}];
 // ---- shared additions for the lab series ----
 const E24=[1.0,1.1,1.2,1.3,1.5,1.6,1.8,2.0,2.2,2.4,2.7,3.0,3.3,3.6,3.9,4.3,4.7,5.1,5.6,6.2,6.8,7.5,8.2,9.1];
 function e24Near(v){const e=Math.floor(Math.log10(v));let best=1e99,bv=v;for(const d of [e-1,e,e+1])for(const m of E24){const c=m*Math.pow(10,d);if(Math.abs(Math.log(c/v))<Math.abs(Math.log(best/v))){best=c;bv=c}}return +bv.toPrecision(3)}
@@ -382,6 +398,23 @@ function plot(cv,o){const {ctx,w,h}=fit(cv);if(!w)return null;const pad={l:o.pad
 // Formula cards from window.FORMULAS
 function renderFormulas(el,list){el.innerHTML=list.map(f=>`<div class="fcard"><h3>${f.name}</h3><div class="eq">${f.eq}</div><p class="when"><b>Use it when:</b> ${f.when}</p>${f.vars?`<dl class="vars">${f.vars.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`:''}${f.ex?`<p class="ex"><b>Example</b>${f.ex}</p>`:''}</div>`).join('')}
 const fEl=document.getElementById('formulasHost');if(fEl&&window.FORMULAS)renderFormulas(fEl,window.FORMULAS);
+
+const NS='http://www.w3.org/2000/svg';
+const zig=(x,y0,y1)=>{const n=6,h=(y1-y0)/(n+1);let d=`M${x} ${y0} v${h/2}`;for(let i=0;i<n;i++)d+=` l${i%2?-8:8} ${h/2} l${i%2?8:-8} ${h/2}`;return d+` V${y1}`};
+const zigH=(y,x0,x1)=>{const n=6,w=(x1-x0)/(n+1);let d=`M${x0} ${y} h${w/2}`;for(let i=0;i<n;i++)d+=` l${w/2} ${i%2?-7:7} l${w/2} ${i%2?7:-7}`;return d+` H${x1}`};
+const src=(cx,cy,lbl)=>`<circle cx="${cx}" cy="${cy}" r="16" class="wire"/><text x="${cx}" y="${cy-4}" text-anchor="middle" class="lbl">+</text><text x="${cx}" y="${cy+11}" text-anchor="middle" class="lbl">−</text><text x="${cx-22}" y="${cy+4}" text-anchor="end" class="lbl">${lbl}</text>`;
+const meter=(cx,cy,l)=>`<circle cx="${cx}" cy="${cy}" r="15" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/><text x="${cx}" y="${cy+5}" text-anchor="middle" style="fill:var(--accent);font-size:14px;font-weight:600">${l}</text>`;
+// moving dots along SVG paths
+function dotLayer(svg,specs){const g=document.createElementNS(NS,'g');svg.appendChild(g);const ds=[];
+  for(const s of specs){const p=svg.querySelector('#'+s.id);if(!p)continue;const L=p.getTotalLength();const n=Math.max(3,Math.round(L/s.gap||L/20));
+    for(let i=0;i<n;i++){const c=document.createElementNS(NS,'circle');c.setAttribute('r','2.6');c.setAttribute('fill',s.color||'var(--accent)');g.appendChild(c);ds.push({c,p,L,s:i*L/n,spec:s})}}
+  return t=>{for(const d of ds){const sp=d.spec.speed();const pos=((d.s+(reduce?0:t)*sp)%d.L+d.L)%d.L;const pt=d.p.getPointAtLength(pos);d.c.setAttribute('cx',pt.x);d.c.setAttribute('cy',pt.y);d.c.setAttribute('opacity',sp===0?0:0.9)}}}
+
+// resistor & part drawings (BAND index 10 = gold)
+const BAND=['#111','#7a4a1e','#d32f2f','#f57c00','#fdd835','#2e7d32','#1e63d6','#7b3fb5','#8a8a8a','#f4f4f4','#c9a227'];
+const resSVG=b=>`<svg viewBox="0 0 160 40"><line x1="0" y1="20" x2="160" y2="20" stroke="#9aa3ad" stroke-width="3"/><rect x="38" y="8" width="84" height="24" rx="10" fill="${b.length>4?'#9cc3e6':'#d8c49a'}"/>${b.map((c,i)=>`<rect x="${(i===b.length-1?100:50)+(i===b.length-1?6:i*13)}" y="8" width="7" height="24" fill="${BAND[c]}"/>`).join('')}</svg>`;
+function renderPractice(el,list){el.innerHTML=list.map(p=>`<li><div class="q">${p.q}</div><details><summary>Show answer</summary><div class="ans">${p.a}</div><div class="work">${p.work}</div></details></li>`).join('')}
+const pEl=document.getElementById('practiceHost');if(pEl&&window.PRACTICE)renderPractice(pEl,window.PRACTICE);
 
 
 /* 1. Power limits */
